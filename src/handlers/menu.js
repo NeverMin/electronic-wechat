@@ -1,6 +1,7 @@
 'use strict';
 
-const { remote, shell, ipcRenderer } = require('electron');
+const { shell, ipcRenderer } = require('electron');
+const remote = require("@electron/remote")
 const AppConfig = require('../configuration');
 
 const { Menu, app } = remote;

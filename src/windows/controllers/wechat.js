@@ -61,8 +61,10 @@ class WeChatWindow {
       titleBarStyle: 'hidden-inset',
       webPreferences: {
         javascript: true,
+        devTools:true,
         plugins: true,
-        nodeIntegration: false,
+        nodeIntegration: true,
+        contextIsolation: false,
         webSecurity: false,
         preload: path.join(__dirname, '../../inject/preload.js'),
       },

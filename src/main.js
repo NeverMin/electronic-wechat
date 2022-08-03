@@ -1,7 +1,8 @@
 'use strict';
 
 const path = require('path');
-const {app, ipcMain} = require('electron');
+require('@electron/remote/main').initialize()
+const { app, ipcMain } = require('electron');
 
 const UpdateHandler = require('./handlers/update');
 const Common = require('./common');
@@ -21,31 +22,14 @@ class ElectronicWeChat {
   }
 
   init() {
-    if(this.checkInstance()) {
-      this.initApp();
-      this.initIPC();
-    } else {
-      app.quit();
-    }
-  }
-  checkInstance() {
-    if (AppConfig.readSettings('multi-instance') === 'on') return true;
-    return !app.makeSingleInstance((commandLine, workingDirectory) => {
-      if(this.splashWindow && this.splashWindow.isShown){
-        this.splashWindow.show();
-        return
-      }
-      if(this.wechatWindow){
-        this.wechatWindow.show();
-      }
-      if(this.settingsWindow && this.settingsWindow.isShown){
-        this.settingsWindow.show();
-      }
-    });
-
+    this.initApp();
+    this.initIPC();
   }
   initApp() {
-    app.on('ready', ()=> {
+    app.on('browser-window-created', (_, window) => {
+      require("@electron/remote/main").enable(window.webContents)
+    })
+    app.on('ready', () => {
       this.createSplashWindow();
       this.createWeChatWindow();
       this.createTray();
@@ -54,7 +38,7 @@ class ElectronicWeChat {
         AppConfig.saveSettings('language', 'en');
         AppConfig.saveSettings('prevent-recall', 'on');
         AppConfig.saveSettings('icon', 'black');
-        AppConfig.saveSettings('multi-instance','on');
+        AppConfig.saveSettings('multi-instance', 'on');
       }
     });
 
@@ -77,12 +61,13 @@ class ElectronicWeChat {
           this.tray.setTitle('');
         }
       } else if (process.platform === "linux" || process.platform === "win32") {
-          app.setBadgeCount(num * 1);
-          this.tray.setUnreadStat((num * 1 > 0)? 1 : 0);
+        app.setBadgeCount(num * 1);
+        this.tray.setUnreadStat((num * 1 > 0) ? 1 : 0);
       }
     });
 
     ipcMain.on('user-logged', () => {
+
       this.wechatWindow.resizeWindow(true, this.splashWindow)
     });
 

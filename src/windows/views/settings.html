@@ -108,10 +108,10 @@
   <script>
     const AppConfig = require('../../configuration');
     const {
-      remote,
       shell,
       ipcRenderer
     } = require('electron');
+    const remote = require("@electron/remote")
 
     const lan = AppConfig.readSettings('language');
     const recall = AppConfig.readSettings('prevent-recall');

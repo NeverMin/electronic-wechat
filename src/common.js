@@ -1,3 +1,4 @@
+
 /**
  * Created by Zhongyi on 3/26/16.
  */
@@ -9,7 +10,7 @@ class Common {
 }
 Common.ELECTRON = 'Electron';
 Common.ELECTRONIC_WECHAT = 'Electronic WeChat';
-Common.DEBUG_MODE = false;
+Common.DEBUG_MODE = process.env.DEBUG_MODE ?  true : false;
 Common.WINDOW_SIZE = {
   width: 800,
   height: 600,
