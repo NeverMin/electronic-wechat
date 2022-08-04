@@ -6,6 +6,7 @@ const ShareMenu = require('./share_menu');
 const MentionMenu = require('./mention_menu');
 const BadgeCount = require('./badge_count');
 const Common = require('../common');
+require("./hide-download-entry")
 // const EmojiParser = require('./emoji_parser');
 // const emojione = require('emojione');
 
@@ -42,6 +43,7 @@ class Injector {
         },
         ]).run(['$rootScope', ($rootScope) => {
           ipcRenderer.send('wx-rendered', MMCgi.isLogin);
+            console.log($rootScope)
 
           $rootScope.$on('newLoginPage', () => {
             ipcRenderer.send('user-logged', '');
