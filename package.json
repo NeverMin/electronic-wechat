@@ -32,10 +32,11 @@
   },
   "homepage": "https://github.com/geeeeeeeeek/wechat-electron/",
   "dependencies": {
+    "@electron/get": "^1.14.1",
     "@electron/remote": "^2.0.8",
     "electron": "20.0.0",
     "electron-localshortcut": "1.1.0",
-    "electron-packager": "^8.5.1",
+    "electron-packager": "^15.5.1",
     "emojione": "^2.2.7",
     "is-xfce": "^1.0.2",
     "nconf": "^0.8.4",

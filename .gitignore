@@ -2,6 +2,7 @@
 /dist
 npm-debug.log*
 .idea
+/build
 
 # Dependency directories
 node_modules
