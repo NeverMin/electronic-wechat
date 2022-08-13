@@ -7,6 +7,7 @@ const MentionMenu = require('./mention_menu');
 const BadgeCount = require('./badge_count');
 const Common = require('../common');
 require("./hide-download-entry")
+require("./message-menu")
 // const EmojiParser = require('./emoji_parser');
 // const emojione = require('emojione');
 
@@ -42,6 +43,7 @@ class Injector {
           });
         },
         ]).run(['$rootScope', ($rootScope) => {
+            console.log("run")
           ipcRenderer.send('wx-rendered', MMCgi.isLogin);
             console.log($rootScope)
 
@@ -104,6 +106,7 @@ class Injector {
         //   msg.Content = EmojiParser.emojiToImage(msg.Content);
         //   break;
         case constants.MSGTYPE_EMOTICON:
+          console.log('Emotion Msg',msg)
           Injector.lock(msg, 'MMDigest', '[Emoticon]');
           Injector.lock(msg, 'MsgType', constants.MSGTYPE_EMOTICON);
           if (msg.ImgHeight >= Common.EMOJI_MAXIUM_SIZE) {

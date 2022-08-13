@@ -126,15 +126,20 @@ class WeChatWindow {
     });
 
     this.wechatWindow.webContents.on('dom-ready', () => {
-      this.wechatWindow.webContents.insertCSS(CSSInjector.commonCSS);
-      if (process.platform === 'darwin') {
-        this.wechatWindow.webContents.insertCSS(CSSInjector.osxCSS);
-      }
 
       if (!UpdateHandler.CHECKED) {
         new UpdateHandler().checkForUpdate(`v${app.getVersion()}`, true);
       }
     });
+
+    this.wechatWindow.webContents.on('did-finish-load',()=>{
+      this.wechatWindow.webContents.insertCSS(CSSInjector.commonCSS)
+        
+      if (process.platform === 'darwin') {
+        this.wechatWindow.webContents.insertCSS(CSSInjector.osxCSS);
+      }
+
+    })
 
     this.wechatWindow.webContents.on('new-window', (event, url) => {
       event.preventDefault();

@@ -35,18 +35,6 @@ CSSInjector.commonCSS = `
     p.copyright {
       display: none !important
     }
-    a.web_wechat_screencut {
-      display: none !important;
-    }
-    * {
-      -webkit-user-select: none;
-      cursor: default !important;
-      -webkit-user-drag: none;
-    }
-    pre, input {
-      -webkit-user-select: initial;
-      cursor: initial !important;
-    }
     html, body {
       width: 100%;
       height: 100%;
