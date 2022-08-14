@@ -32,7 +32,7 @@ class Injector {
     const angular = window.angular = {};
     let angularBootstrapReal;
     Object.defineProperty(angular, 'bootstrap', {
-      get: () => angularBootstrapReal ? function (element, moduleNames) {
+      get: () => angularBootstrapReal ? function(element, moduleNames) {
         const moduleName = 'webwxApp';
         if (moduleNames.indexOf(moduleName) < 0) return;
         let constants = null;
@@ -43,15 +43,15 @@ class Injector {
           });
         },
         ]).run(['$rootScope', ($rootScope) => {
-            console.log("run")
           ipcRenderer.send('wx-rendered', MMCgi.isLogin);
-            console.log($rootScope)
+          console.log($rootScope)
 
           $rootScope.$on('newLoginPage', () => {
             ipcRenderer.send('user-logged', '');
           });
           $rootScope.shareMenu = ShareMenu.inject;
-          $rootScope.mentionMenu = MentionMenu.inject;
+          const ext = require('../../ext/dist/lib.umd.js')
+          ext.mention()
         }]);
         return angularBootstrapReal.apply(angular, arguments);
       } : angularBootstrapReal,
@@ -94,7 +94,7 @@ class Injector {
   static lock(object, key, value) {
     return Object.defineProperty(object, key, {
       get: () => value,
-      set: () => {},
+      set: () => { },
     });
   }
 
@@ -106,7 +106,7 @@ class Injector {
         //   msg.Content = EmojiParser.emojiToImage(msg.Content);
         //   break;
         case constants.MSGTYPE_EMOTICON:
-          console.log('Emotion Msg',msg)
+          console.log('Emotion Msg', msg)
           Injector.lock(msg, 'MMDigest', '[Emoticon]');
           Injector.lock(msg, 'MsgType', constants.MSGTYPE_EMOTICON);
           if (msg.ImgHeight >= Common.EMOJI_MAXIUM_SIZE) {
