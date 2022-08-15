@@ -5870,6 +5870,49 @@ const mention = (() => {
   });
 });
 
-console.log("hello,", mention);
+const templetes = {};
+function initTemplateHook(cache) {
+  const get = cache.get;
+  cache.put;
+  cache.get = (name) => {
+    const tpl = get(name);
+    if (templetes[name] && tpl) {
+      return templetes[name](tpl);
+    }
+    return tpl;
+  };
+}
+function registerTemplate(name, templateTransform) {
+  templetes[name] = templateTransform;
+}
+function installHook(name, onRender) {
+  window[name] = onRender;
+  registerTemplate(name, (tpl) => {
+    const el = document.createElement("template");
+    el.innerHTML = tpl;
+    const root = el.content.querySelector("*");
+    root.setAttribute("data-name", name);
+    const boot = document.createElement("script");
+    boot.innerHTML = `
+      const callback="${name}"
+      window[callback](document.querySelector('[data-name="${name}"]'))
+    `;
+    root.append(
+      boot
+    );
+    return el.innerHTML;
+  });
+}
 
-export { mention };
+const hookUploadImg = () => installHook("imageUploadPreview.html", (el) => {
+  console.log(el);
+});
+
+const exts = [hookUploadImg, mention];
+function init() {
+  for (const ext of exts) {
+    ext();
+  }
+}
+
+export { init, initTemplateHook };

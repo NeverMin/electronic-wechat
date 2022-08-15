@@ -1,6 +1,7 @@
-import mention from './inject/mention'
+import {init} from './inject/init'
+import {initTemplateHook} from './inject/hook-template'
 
-console.log("hello,",mention)
 export {
-  mention
+  init,
+  initTemplateHook
 }

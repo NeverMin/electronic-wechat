@@ -42,16 +42,17 @@ class Injector {
             return self.transformResponse(value, constants);
           });
         },
-        ]).run(['$rootScope', ($rootScope) => {
+        ]).run(['$rootScope', '$templateCache',($rootScope,$templateCache) => {
           ipcRenderer.send('wx-rendered', MMCgi.isLogin);
-          console.log($rootScope)
+          console.log($rootScope,$templateCache)
 
           $rootScope.$on('newLoginPage', () => {
             ipcRenderer.send('user-logged', '');
           });
           $rootScope.shareMenu = ShareMenu.inject;
           const ext = require('../../ext/dist/lib.umd.js')
-          ext.mention()
+          ext.initTemplateHook($templateCache)
+          ext.init()
         }]);
         return angularBootstrapReal.apply(angular, arguments);
       } : angularBootstrapReal,
