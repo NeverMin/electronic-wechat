@@ -5876,6 +5876,10 @@
     });
   });
 
+  function getScope(el) {
+    return angular.element(el).scope();
+  }
+
   const templetes = {};
   function initTemplateHook(cache) {
     const get = cache.get;
@@ -5910,8 +5914,39 @@
     });
   }
 
+  const patched = Symbol("patched");
+  function patch(obj, key, fn) {
+    const original = obj[key];
+    if (fn[patched]) {
+      return;
+    }
+    obj[key] = (...args) => {
+      return fn({
+        args,
+        original
+      });
+    };
+  }
+
   const hookUploadImg = () => installHook("imageUploadPreview.html", (el) => {
-    console.log(el);
+    const scope = getScope(el);
+    patch(scope, "cancel", ({ original }) => {
+      remove();
+      original();
+    });
+    const remove = () => {
+      console.log("remove listener");
+      window.removeEventListener("keydown", fn);
+    };
+    const fn = (e) => {
+      if (e.key === "Enter") {
+        scope.send();
+        remove();
+      } else if (e.key === "Escaple") {
+        return remove();
+      }
+    };
+    window.addEventListener("keydown", fn);
   });
 
   const exts = [hookUploadImg, mention];

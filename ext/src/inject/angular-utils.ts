@@ -2,7 +2,7 @@ export type Scope = {
   $$childHead: Scope | null
   $$nextSibling: Scope | null
   $id: string
-} & Record<string, unknown>
+} & Record<string, any>
 
 export function findScope(scope: Scope, predict: (s: Scope) => boolean): Scope | null {
   if (scope) {
@@ -26,4 +26,8 @@ export function findScope(scope: Scope, predict: (s: Scope) => boolean): Scope |
     }
   }
   return null
+}
+declare const angular: any
+export function getScope(el: HTMLElement) {
+  return angular.element(el).scope() as Scope
 }
