@@ -31,3 +31,13 @@ declare const angular: any
 export function getScope(el: HTMLElement) {
   return angular.element(el).scope() as Scope
 }
+export function getAngularObj(name: string[], callback: (...args: any[]) => void) {
+  angular.injector(['ng', 'Services']).invoke([...name, callback]);
+}
+export function defineServices(name: string, deps: string[], fn: (...args: any[]) => any) {
+  angular.module('Services')
+    .factory(name, [
+      ...deps,
+      fn
+    ])
+}

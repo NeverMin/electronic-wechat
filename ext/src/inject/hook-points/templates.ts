@@ -21,17 +21,23 @@ export function registerTemplate(name: string, templateTransform: (tpl: string) 
   templetes[name] = templateTransform
 }
 
-export function installHook(name: string, onRender: (el: HTMLElement) => void) {
+export function installHook(name: string, param: {
+  transform?: (tpl: string) => string
+  onRender: (el: HTMLElement) => void
+}) {
+  const { onRender } = param;
   (window as any)[name] = onRender
   registerTemplate(name, (tpl) => {
     const el = document.createElement('template')
-    el.innerHTML = tpl
+    el.innerHTML = param.transform ? param.transform(tpl) : tpl
     const root = el.content.querySelector('*')!
     root.setAttribute('data-name', name)
     const boot = document.createElement('script')
     boot.innerHTML = `
       const callback="${name}"
-      window[callback](document.querySelector('[data-name="${name}"]'))
+      setTimeout(
+        ()=>window[callback](document.querySelector('[data-name="${name}"]'))
+      )
     `
     root.append(
       boot

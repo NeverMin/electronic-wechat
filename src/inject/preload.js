@@ -30,21 +30,42 @@ class Injector {
   initAngularInjection() {
     const self = this;
     const angular = window.angular = {};
+    let module = angular.module
+    let initialized = false
+    Object.defineProperty(angular, 'module', {
+      get: () => {
+        if (module && !initialized) {
+          const ext = require('../../ext/dist/lib.umd.js')
+          try {
+            const s = module("Services")
+            ext.initHookServices(s)
+            ext.init()
+            initialized = true
+          } catch { }
+        }
+        return module
+      },
+      set: (m) => {
+        module = m
+      }
+    })
     let angularBootstrapReal;
     Object.defineProperty(angular, 'bootstrap', {
       get: () => angularBootstrapReal ? function(element, moduleNames) {
         const moduleName = 'webwxApp';
         if (moduleNames.indexOf(moduleName) < 0) return;
         let constants = null;
-        angular.injector(['ng', 'Services']).invoke(['confFactory', (confFactory) => (constants = confFactory)]);
+        angular.injector(['ng', 'Services']).invoke(['confFactory',(confFactory) => {
+          constants = confFactory
+        }]);
         angular.module(moduleName).config(['$httpProvider', ($httpProvider) => {
           $httpProvider.defaults.transformResponse.push((value) => {
             return self.transformResponse(value, constants);
           });
         },
-        ]).run(['$rootScope', '$templateCache',($rootScope,$templateCache) => {
+        ]).run(['$rootScope', '$templateCache', ($rootScope, $templateCache) => {
           ipcRenderer.send('wx-rendered', MMCgi.isLogin);
-          console.log($rootScope,$templateCache)
+          console.log($rootScope, $templateCache)
 
           $rootScope.$on('newLoginPage', () => {
             ipcRenderer.send('user-logged', '');

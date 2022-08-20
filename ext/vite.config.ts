@@ -15,5 +15,8 @@ export default defineConfig({
     },
     target: 'esnext',
     minify: false,
+    rollupOptions: {
+      external:['child_process']
+    }
   },
 });

@@ -1,3 +1,5 @@
+import { exec } from 'child_process';
+
 const sharedConfig = {};
 function setHydrateContext(context) {
   sharedConfig.context = context;
@@ -5889,17 +5891,20 @@ function initTemplateHook(cache) {
 function registerTemplate(name, templateTransform) {
   templetes[name] = templateTransform;
 }
-function installHook(name, onRender) {
+function installHook(name, param) {
+  const { onRender } = param;
   window[name] = onRender;
   registerTemplate(name, (tpl) => {
     const el = document.createElement("template");
-    el.innerHTML = tpl;
+    el.innerHTML = param.transform ? param.transform(tpl) : tpl;
     const root = el.content.querySelector("*");
     root.setAttribute("data-name", name);
     const boot = document.createElement("script");
     boot.innerHTML = `
       const callback="${name}"
-      window[callback](document.querySelector('[data-name="${name}"]'))
+      setTimeout(
+        ()=>window[callback](document.querySelector('[data-name="${name}"]'))
+      )
     `;
     root.append(
       boot
@@ -5910,44 +5915,174 @@ function installHook(name, onRender) {
 
 const patched = Symbol("patched");
 function patch(obj, key, fn) {
-  const original = obj[key];
+  let original = obj[key];
   if (fn[patched]) {
     return;
   }
-  obj[key] = (...args) => {
-    return fn({
-      args,
-      original
-    });
-  };
+  Object.defineProperty(
+    obj,
+    key,
+    {
+      get: () => {
+        const f = function(...args) {
+          return fn({
+            args,
+            context: this,
+            original
+          });
+        };
+        f[patched] = true;
+        return f;
+      },
+      set: (v) => {
+        console.log("!!!!!", v);
+        original = v;
+      }
+    }
+  );
 }
 
-const hookUploadImg = () => installHook("imageUploadPreview.html", (el) => {
-  const scope = getScope(el);
-  patch(scope, "cancel", ({ original }) => {
-    remove();
-    original();
-  });
-  const remove = () => {
-    console.log("remove listener");
-    window.removeEventListener("keydown", fn);
-  };
-  const fn = (e) => {
-    if (e.key === "Enter") {
-      scope.send();
+const hookUploadImg = () => installHook("imageUploadPreview.html", {
+  onRender: (el) => {
+    const scope = getScope(el);
+    patch(scope, "cancel", ({ original }) => {
       remove();
-    } else if (e.key === "Escaple") {
-      return remove();
-    }
-  };
-  window.addEventListener("keydown", fn);
+      original();
+    });
+    const remove = () => {
+      window.removeEventListener("keydown", fn);
+    };
+    const fn = (e) => {
+      if (e.key === "Enter") {
+        scope.send();
+        remove();
+      } else if (e.key === "Escaple") {
+        return remove();
+      }
+    };
+    window.addEventListener("keydown", fn);
+  }
 });
 
-const exts = [hookUploadImg, mention];
+const hooks = {};
+function initHookServices(services) {
+  patch(services, "factory", (param) => {
+    const [name, deps] = param.args;
+    console.log("DDDD", name);
+    if (hooks[name]) {
+      console.log(param.args);
+      const fn = deps.pop();
+      return param.original.apply(param.context, [
+        name,
+        [
+          ...deps,
+          (...injected) => {
+            return hooks[name].f(
+              fn(...injected),
+              injected
+            );
+          }
+        ]
+      ]);
+    }
+    return param.original.apply(param.context, param.args);
+  });
+}
+function registerServicesHook(name, hook) {
+  hooks[name] = hook;
+}
+
+function hookAssign(property, onAssign) {
+  try {
+    console.log("watch", property);
+    let value = window[property];
+    Object.defineProperty(
+      window,
+      property,
+      {
+        get() {
+          return value;
+        },
+        set(val) {
+          value = onAssign(val);
+        }
+      }
+    );
+  } catch {
+  }
+}
+
+let uploader;
+hookAssign("WebUploader", (value) => {
+  patch(
+    value,
+    "create",
+    ({ original, context, args }) => {
+      const instance = original(...args);
+      uploader = instance;
+      console.log(instance);
+      return instance;
+    }
+  );
+  return value;
+});
+function getUploader() {
+  return uploader;
+}
+
+const hookScreenshot = () => {
+  registerServicesHook("screenShotFactory", {
+    f: (screenShotFactory) => {
+      console.log(screenShotFactory);
+      const sf = Object.create(screenShotFactory);
+      Object.assign(
+        sf,
+        {
+          isClipBoardImage() {
+            return true;
+          },
+          isSupport() {
+            return true;
+          },
+          capture({ ok }) {
+            exec("flameshot gui", (err) => {
+              if (err == null) {
+                ok();
+              }
+            });
+          },
+          upload() {
+            console.log("uploader", getUploader());
+            navigator.clipboard.read().then((items) => {
+              const t = items[0].types[0];
+              const data = items[0].getType(t);
+              return data;
+            }).then((data) => {
+              const file = new WebUploader.Lib.File(
+                WebUploader.guid(),
+                data
+              );
+              file.onSuccess = () => {
+              };
+              getUploader()?.addFile(file);
+            });
+          }
+        }
+      );
+      return sf;
+    }
+  });
+};
+
+const exts = [
+  hookUploadImg,
+  hookScreenshot,
+  mention
+];
 function init() {
   for (const ext of exts) {
     ext();
   }
 }
 
-export { init, initTemplateHook };
+export { init, initHookServices, initTemplateHook };
