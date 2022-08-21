@@ -3,13 +3,10 @@ export type Hook = {
   f: (obj: any, injected: any[]) => any
 }
 const hooks: Record<string, Hook> = {}
-export function initHookServices(services: any) {
-  /*
-angular.module("Services")
-  .factory("a",[b,function(b) {}])
-*/
-  patch(services, 'factory', (param) => {
+export function initHookControllers(controller: any) {
+  patch(controller, 'controller', (param) => {
     const [name, deps] = param.args as any[]
+    console.log("controller",name,hooks)
     if (hooks[name]) {
       console.log(param.args)
       const fn = deps.pop()
@@ -29,6 +26,7 @@ angular.module("Services")
   })
 }
 
-export function registerServicesHook(name: string, hook: Hook) {
+
+export function registerControllerHook(name: string, hook: Hook) {
   hooks[name] = hook
 }

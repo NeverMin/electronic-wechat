@@ -12,6 +12,7 @@ require("./message-menu")
 // const emojione = require('emojione');
 
 const AppConfig = require('../configuration');
+const { patch } = require('./utils');
 
 class Injector {
   init() {
@@ -31,17 +32,22 @@ class Injector {
     const self = this;
     const angular = window.angular = {};
     let module = angular.module
-    let initialized = false
     Object.defineProperty(angular, 'module', {
       get: () => {
-        if (module && !initialized) {
-          const ext = require('../../ext/dist/lib.umd.js')
-          try {
-            const s = module("Services")
-            ext.initHookServices(s)
-            ext.init()
-            initialized = true
-          } catch { }
+        if (module) {
+          return (name, ...args) => {
+            const m = module(name, ...args)
+            if (name === 'Services') {
+              const ext = require('../../ext/dist/lib.umd.js')
+              ext.init()
+              ext.initHookServices(m)
+            } else if (name === 'Controllers') {
+              const ext = require('../../ext/dist/lib.umd.js')
+              ext.initHookControllers(m)
+              ext.init()
+            }
+            return m
+          }
         }
         return module
       },
@@ -54,8 +60,9 @@ class Injector {
       get: () => angularBootstrapReal ? function(element, moduleNames) {
         const moduleName = 'webwxApp';
         if (moduleNames.indexOf(moduleName) < 0) return;
+
         let constants = null;
-        angular.injector(['ng', 'Services']).invoke(['confFactory',(confFactory) => {
+        angular.injector(['ng', 'Services']).invoke(['confFactory', (confFactory) => {
           constants = confFactory
         }]);
         angular.module(moduleName).config(['$httpProvider', ($httpProvider) => {
