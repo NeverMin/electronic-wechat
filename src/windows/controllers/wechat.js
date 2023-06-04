@@ -118,6 +118,15 @@ class WeChatWindow {
       this.wechatWindow.webContents.openDevTools();
     }
 
+    const { session } = require('electron');
+    session.defaultSession.webRequest.onBeforeSendHeaders((details, callback) => {
+      if (details.url.includes('webwxnewloginpage')) {
+        details.requestHeaders['client-version'] = Common.WEB_WECHAT_CLIENT_VERSION;;
+        details.requestHeaders['extspam'] = Common.WEB_WECHAT_EXTSPAM_KEY;
+      }
+      callback({ cancel: false, requestHeaders: details.requestHeaders });
+    });
+
     this.connectWeChat();
 
     this.wechatWindow.webContents.on('will-navigate', (ev, url) => {
