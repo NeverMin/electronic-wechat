@@ -34,6 +34,7 @@ cd electronic-wechat
 # 设置阿里镜像
 npm config set registry=https://registry.npmmirror.com
 npm config set disturl=https://registry.npmmirror.com/-/binary/node
+export ELECTRON_MIRROR=https://registry.npmmirror.com/-/binary/electron/
 # 安装依赖, 运行应用
 npm install && npm start
 ```
