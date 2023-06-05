@@ -191,6 +191,7 @@ class MenuHandler {
         submenu: [
           {
             label: Common.MENU.pref,
+            accelerator: 'Ctrl+S',
             click: MenuHandler._preference,
           },
           {
@@ -253,6 +254,8 @@ class MenuHandler {
 
     if (platform === 'darwin') {
       return darwinTemplate;
+//    } else if (platform === 'win32') {
+//      return windowsTemplate;
     } else if (platform === 'linux') {
       return linuxTemplate;
     }
